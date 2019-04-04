@@ -1,0 +1,84 @@
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import create_engine
+from sqlalchemy.orm import mapper
+from sqlalchemy.orm import sessionmaker
+
+#подключение к базе данных
+engine = create_engine('sqlite:///:memory:', echo=True)
+
+#описание таблицы
+metadata = MetaData()
+users_table = Table('users', metadata,
+    Column('id', Integer, primary_key=True),
+    Column('name', String),
+    Column('fullname', String),
+    Column('password', String)
+)
+
+#создание таблицы
+metadata.create_all(engine)
+
+#класс модели базы данных
+class User(object):
+    def __init__(self, name, fullname, password):
+        self.name = name
+        self.fullname = fullname
+        self.password = password
+
+    def __repr__(self):
+        return "<User('%s','%s', '%s')>" % (self.name, self.fullname, self.password)
+
+#связь модели и базы данных
+mapper(User, users_table)
+
+#создание сессии для общения с базой данных
+session = sessionmaker(bind=engine)
+
+#Добавление нового объекта
+vasiaUser = User("vasia", "Vasiliy Pypkin", "vasia2000")
+session.add(vasiaUser)
+#или так session.add_all([User("kolia", "Cool Kolian[S.A.]","kolia$$$"), User("zina", "Zina Korzina", "zk18")])   #добавить сразу пачку записей
+
+# #запрос в базу 
+# session.query(User).filter(User.name.in_(['Vasko', 'fakeuser'])).all() 
+# # [<User('Vasko','Vasiliy Pypkin', '-=VP2001=-')>, <User('fakeuser','Invalid', '12345')>]
+
+# for name, in session.query(User.name).filter_by(fullname='Vasiliy Pupkin'): 
+# for name, in session.query(User.name).filter(User.fullname=='Vasiliy Pupkin'):
+# for user in session.query(User).filter(User.name=='vasia').filter(User.fullname=='Vasiliy Pupkin'): 
+
+# for instance in session.query(User).order_by(User.id): 
+#     print instance.name, instance.fullname
+# # vasia Vasiliy Pupkin
+# # kolia Cool Kolian[S.A.]
+# # zina Zina Korzina
+
+vasiaUser.password = "-=VP2001=-"   #старый пароль был таки ненадежен
+
+#принудительная фиксация изменений
+#session.commit()
+
+#проверка ожидаемых модификаций
+#session.dirty
+
+#проверка ожидаемых добавлений в таблицу
+#session.new
+
+# from sqlalchemy.ext.declarative import declarative_base
+# Base = declarative_base()
+# class User(Base):
+#     __tablename__ = 'users'
+#     id = Column(Integer, primary_key=True)
+#     name = Column(String)
+#     fullname = Column(String)
+#     password = Column(String)
+    
+#     def __init__(self, name, fullname, password):
+#         self.name = name
+#         self.fullname = fullname
+#         self.password = password
+#     def __repr__(self):
+#         return "<User('%s','%s', '%s')>" % (self.name, self.fullname, self.password)
+
+# #В данном случае, создание таблицы User
+# Base.metadata.create_all(engine)
